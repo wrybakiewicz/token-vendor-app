@@ -3,6 +3,7 @@ import React from "react";
 import BugCoinArtifact from "./contracts/BugCoin.json";
 import contractAddress from "./contracts/contract-address.json";
 import {ethers} from "ethers";
+import {Balance} from "./Balance";
 
 const NETWORK_ID = '31337';
 
@@ -14,6 +15,7 @@ export class Dapp extends React.Component {
         this.initialState = {
             selectedAddress: undefined,
             bugCoin: undefined,
+            balanceActive: true
         };
 
         this.state = this.initialState;
@@ -38,7 +40,29 @@ export class Dapp extends React.Component {
             return <div>Loading...</div>;
         }
 
-        return <div>Loaded</div>
+        return <div className="container p-4">
+            <div className="row">
+                <div className="col-12">
+                    <ul className="nav nav-tabs justify-content-center">
+                        <li className="nav-item">
+                            <a className={"nav-link " + this.showActive(this.state.balanceActive)}
+                               onClick={() => this.setState({
+                                   balanceActive: true
+                               })} href="#">Balance</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div className="row">
+                <div className="col-12 ">
+                    <div>
+                        {this.state.balanceActive && (<Balance bugCoin={this.state.bugCoin} selectedAddress={this.state.selectedAddress}/>)}
+                    </div>
+                </div>
+            </div>
+
+        </div>;
     }
 
     async _connectWallet() {
@@ -65,7 +89,6 @@ export class Dapp extends React.Component {
     }
 
     _checkNetwork() {
-        console.log(window.ethereum.networkVersion);
         return window.ethereum.networkVersion === NETWORK_ID;
 
     }
