@@ -1,7 +1,7 @@
 import React from "react";
 
-import BugCoinArtifact from "./contracts/BugCoin.json";
-import contractAddress from "./contracts/contract-address.json";
+import contracts from "./contracts/contracts.json";
+
 import {ethers} from "ethers";
 import {Balance} from "./Balance";
 
@@ -57,7 +57,8 @@ export class Dapp extends React.Component {
             <div className="row">
                 <div className="col-12 ">
                     <div>
-                        {this.state.balanceActive && (<Balance bugCoin={this.state.bugCoin} selectedAddress={this.state.selectedAddress}/>)}
+                        {this.state.balanceActive && (<Balance bugCoin={this.state.bugCoin}
+                                                               selectedAddress={this.state.selectedAddress}/>)}
                     </div>
                 </div>
             </div>
@@ -102,10 +103,12 @@ export class Dapp extends React.Component {
     }
 
     async _intializeEthers() {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const ethereum = window.ethereum
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const bugCoinContract = contracts[ethereum.networkVersion][0].contracts.BugCoin;
         const bugCoin = new ethers.Contract(
-            contractAddress.BugCoin,
-            BugCoinArtifact.abi,
+            bugCoinContract.address,
+            bugCoinContract.abi,
             provider.getSigner(0)
         );
         this.setState({bugCoin: bugCoin, provider: provider});

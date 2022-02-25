@@ -14,4 +14,4 @@ test:
 	npx hardhat test
 
 deploy_local:
-	npx hardhat deploy --network localhost --export-all ./frontend/src/contracts/hardhat_contracts.json
+	npx hardhat deploy --network localhost --export-all ./frontend/src/contracts/contracts.json
