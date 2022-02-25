@@ -10,3 +10,4 @@ artifacts
 
 .idea
 package-lock.json
+deployments
