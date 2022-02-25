@@ -4,6 +4,7 @@ import contracts from "./contracts/contracts.json";
 
 import {ethers} from "ethers";
 import {Balance} from "./Balance";
+import {Transfer} from "./Transfer";
 
 const NETWORK_ID = '31337';
 
@@ -15,7 +16,8 @@ export class Dapp extends React.Component {
         this.initialState = {
             selectedAddress: undefined,
             bugCoin: undefined,
-            balanceActive: true
+            balanceActive: true,
+            transferActive: false
         };
 
         this.state = this.initialState;
@@ -47,8 +49,16 @@ export class Dapp extends React.Component {
                         <li className="nav-item">
                             <a className={"nav-link " + this.showActive(this.state.balanceActive)}
                                onClick={() => this.setState({
-                                   balanceActive: true
+                                   balanceActive: true,
+                                   transferActive: false
                                })} href="#">Balance</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className={"nav-link " + this.showActive(this.state.transferActive)}
+                               onClick={() => this.setState({
+                                   balanceActive: false,
+                                   transferActive: true
+                               })} href="#">Transfer</a>
                         </li>
                     </ul>
                 </div>
@@ -58,7 +68,9 @@ export class Dapp extends React.Component {
                 <div className="col-12 ">
                     <div>
                         {this.state.balanceActive && (<Balance bugCoin={this.state.bugCoin}
-                                                               selectedAddress={this.state.selectedAddress}/>)}
+                                                               selectedAddress={this.state.selectedAddress} />)}
+                        {this.state.transferActive && (<Transfer bugCoin={this.state.bugCoin}
+                                                                 selectedAddress={this.state.selectedAddress} />)}
                     </div>
                 </div>
             </div>
