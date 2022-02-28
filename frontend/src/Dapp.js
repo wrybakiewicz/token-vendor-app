@@ -7,6 +7,7 @@ import {Balance} from "./Balance";
 import {Transfer} from "./Transfer";
 import {Vendor} from "./Vendor";
 import {Withdraw} from "./Withdraw";
+import _ from 'underscore';
 
 const NETWORK_ID = '31337';
 
@@ -31,6 +32,11 @@ export class Dapp extends React.Component {
 
     componentDidMount() {
         this._connectWallet();
+    }
+
+    componentWillUnmount() {
+        this.setState = () => {
+        };
     }
 
     render() {
@@ -120,17 +126,14 @@ export class Dapp extends React.Component {
         }
     }
 
-    async _connectWallet() {
-        const addresses = await window.ethereum.request({method: 'eth_requestAccounts'});
-        const selectedAddress = addresses[0];
-
+    _connectWallet() {
         if (!this._checkNetwork()) {
             return;
         }
-        this._initialize(selectedAddress);
+        this._initialize();
 
         window.ethereum.on("accountsChanged", ([_]) => {
-            return this._resetState();
+            this._resetState();
         });
 
         window.ethereum.on("chainChanged", ([_]) => {
@@ -144,20 +147,22 @@ export class Dapp extends React.Component {
 
     }
 
-    _initialize(userAddress) {
-        console.log("User address: " + userAddress);
-        this.setState({
-            selectedAddress: userAddress,
-        });
-        this._intializeEthers();
+    async _initialize() {
+        const addresses = await window.ethereum.request({method: 'eth_requestAccounts'});
+        const selectedAddress = addresses[0];
+        console.log("User address: " + selectedAddress);
+        const initializeEthers = await this._intializeEthers(selectedAddress);
+        const state = _.extend({}, initializeEthers, {selectedAddress: selectedAddress});
+        this.setState(state);
     }
 
-    _intializeEthers() {
+    _intializeEthers(selectedAddress) {
         const ethereum = window.ethereum
         const provider = new ethers.providers.Web3Provider(ethereum);
-        this.setState({provider: provider});
-        this._initializeBugCoin(provider, ethereum);
-        this._initializeVendor(provider, ethereum);
+        const initializeBugCoin = this._initializeBugCoin(provider, ethereum);
+        return this._initializeVendor(provider, ethereum, selectedAddress).then(initializeVendor =>
+            _.extend({}, initializeBugCoin, initializeVendor, {provider: provider})
+        );
     }
 
     _initializeBugCoin(provider, ethereum) {
@@ -167,23 +172,24 @@ export class Dapp extends React.Component {
             bugCoinContract.abi,
             provider.getSigner(0)
         );
-        this.setState({bugCoin: bugCoin});
+        return {bugCoin: bugCoin};
     }
 
-    _initializeVendor(provider, ethereum) {
+    _initializeVendor(provider, ethereum, selectedAddress) {
         const vendorContract = contracts[ethereum.networkVersion][0].contracts.Vendor;
         const vendor = new ethers.Contract(
             vendorContract.address,
             vendorContract.abi,
             provider.getSigner(0)
         );
-        this.setState({vendor: vendor});
-        this.updateWithdrawActive();
+        return this.updateWithdrawActive(vendor, selectedAddress)
+            .then(updateWithdrawActive => _.extend({}, updateWithdrawActive, {vendor: vendor}));
     }
 
     _resetState() {
+        console.log("Reset state");
         this.setState(this.initialState);
-        this._connectWallet();
+        this._initialize();
     }
 
     showActive(value) {
@@ -193,13 +199,13 @@ export class Dapp extends React.Component {
         return "";
     }
 
-    updateWithdrawActive() {
-        this.state.vendor.owner()
+    updateWithdrawActive(vendor, selectedAddress) {
+        return vendor.owner()
             .then(owner => {
-                if (owner.toLowerCase() === this.state.selectedAddress) {
-                    this.setState({showWithdraw: true})
+                if (owner.toLowerCase() === selectedAddress) {
+                    return {showWithdraw: true};
                 } else {
-                    this.setState({showWithdraw: false})
+                    return {showWithdraw: false};
                 }
             });
     }
