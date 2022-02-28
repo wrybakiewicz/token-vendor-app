@@ -11,6 +11,7 @@ contract Vendor is Ownable {
 
     event TokenBought(address buyer, uint amountOfEth, uint amountOfBugCoin);
     event EthWithdrawn(address owner, uint amountOfEth);
+    event TokenSold(address seller, uint amountOfEth, uint amountOfBugCoin);
 
     constructor(address _bugCoin) {
         bugCoin = BugCoin(_bugCoin);
@@ -26,5 +27,12 @@ contract Vendor is Ownable {
         uint balance = address(this).balance;
         payable(msg.sender).transfer(balance);
         emit EthWithdrawn(msg.sender, balance);
+    }
+
+    function sell(uint amount) external {
+        bugCoin.transferFrom(msg.sender, address(this), amount);
+        uint amountEth = amount / bugCoinPerEth;
+        payable(msg.sender).transfer(amountEth);
+        emit TokenSold(msg.sender, amountEth, amount);
     }
 }
