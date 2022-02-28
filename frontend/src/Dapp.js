@@ -6,6 +6,7 @@ import {ethers} from "ethers";
 import {Balance} from "./Balance";
 import {Transfer} from "./Transfer";
 import {Vendor} from "./Vendor";
+import {Withdraw} from "./Withdraw";
 
 const NETWORK_ID = '31337';
 
@@ -20,7 +21,9 @@ export class Dapp extends React.Component {
             vendor: undefined,
             balanceActive: true,
             transferActive: false,
-            vendorActive: false
+            vendorActive: false,
+            withdrawActive: false,
+            showWithdraw: true
         };
 
         this.state = this.initialState;
@@ -54,7 +57,8 @@ export class Dapp extends React.Component {
                                onClick={() => this.setState({
                                    balanceActive: true,
                                    transferActive: false,
-                                   vendorActive: false
+                                   vendorActive: false,
+                                   withdrawActive: false
                                })} href="#">Balance</a>
                         </li>
                         <li className="nav-item">
@@ -62,7 +66,8 @@ export class Dapp extends React.Component {
                                onClick={() => this.setState({
                                    balanceActive: false,
                                    transferActive: true,
-                                   vendorActive: false
+                                   vendorActive: false,
+                                   withdrawActive: false
                                })} href="#">Transfer</a>
                         </li>
                         <li className="nav-item">
@@ -70,9 +75,11 @@ export class Dapp extends React.Component {
                                onClick={() => this.setState({
                                    balanceActive: false,
                                    transferActive: false,
-                                   vendorActive: true
+                                   vendorActive: true,
+                                   withdrawActive: false
                                })} href="#">Vendor</a>
                         </li>
+                        {this.renderWithdraw()}
                     </ul>
                 </div>
             </div>
@@ -88,11 +95,29 @@ export class Dapp extends React.Component {
                                                              provider={this.state.provider}
                                                              vendor={this.state.vendor}
                                                              selectedAddress={this.state.selectedAddress}/>)}
+                        {this.state.withdrawActive && (<Withdraw bugCoin={this.state.bugCoin}
+                                                                 provider={this.state.provider}
+                                                                 vendor={this.state.vendor}
+                                                                 selectedAddress={this.state.selectedAddress}/>)}
                     </div>
                 </div>
             </div>
 
         </div>;
+    }
+
+    renderWithdraw() {
+        if (this.state.showWithdraw) {
+            return <li className="nav-item">
+                <a className={"nav-link " + this.showActive(this.state.withdrawActive)}
+                   onClick={() => this.setState({
+                       balanceActive: false,
+                       transferActive: false,
+                       vendorActive: false,
+                       withdrawActive: true
+                   })} href="#">Withdraw</a>
+            </li>;
+        }
     }
 
     async _connectWallet() {
@@ -104,12 +129,8 @@ export class Dapp extends React.Component {
         }
         this._initialize(selectedAddress);
 
-        window.ethereum.on("accountsChanged", ([newAddress]) => {
-            if (newAddress === undefined) {
-                return this._resetState();
-            }
-
-            this._initialize(newAddress);
+        window.ethereum.on("accountsChanged", ([_]) => {
+            return this._resetState();
         });
 
         window.ethereum.on("chainChanged", ([_]) => {
@@ -157,6 +178,7 @@ export class Dapp extends React.Component {
             provider.getSigner(0)
         );
         this.setState({vendor: vendor});
+        this.updateWithdrawActive();
     }
 
     _resetState() {
@@ -169,6 +191,17 @@ export class Dapp extends React.Component {
             return "active";
         }
         return "";
+    }
+
+    updateWithdrawActive() {
+        this.state.vendor.owner()
+            .then(owner => {
+                if (owner.toLowerCase() === this.state.selectedAddress) {
+                    this.setState({showWithdraw: true})
+                } else {
+                    this.setState({showWithdraw: false})
+                }
+            });
     }
 
 }

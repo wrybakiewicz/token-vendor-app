@@ -21,7 +21,7 @@ export class Transfer extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props.bugCoin === undefined) {
+        if (this.props.bugCoin === undefined || (prevProps.selectedAddress !== this.props.selectedAddress)) {
             this.update();
         }
     }
