@@ -12,7 +12,10 @@ export class Vendor extends React.Component {
         vendorBalanceEth: undefined,
         vendorBgcEthPrice: undefined,
         amountBgcToBuy: "",
-        amountEthToPay: ""
+        amountEthToPay: "",
+        amountBgcToSell: "",
+        showApprove: false,
+        showSell: false,
     };
 
     componentDidMount() {
@@ -28,7 +31,7 @@ export class Vendor extends React.Component {
         if (this.props.bugCoin === undefined || (prevProps.selectedAddress !== this.props.selectedAddress)) {
             this.update();
         }
-        if(prevState.amountBgcToBuy !== this.state.amountBgcToBuy) {
+        if (prevState.amountBgcToBuy !== this.state.amountBgcToBuy) {
             this.updateAmountEthToPay();
         }
     }
@@ -56,12 +59,43 @@ export class Vendor extends React.Component {
                        value={this.state.amountBgcToBuy}
                        onChange={e => this.setState({amountBgcToBuy: e.target.value})}/>
                 <p className="h6 p-2">ETH to pay: {this.state.amountEthToPay}</p>
+                <button type="submit" className="btn btn-primary"
+                        onClick={() => this.buy()}>Buy
+                </button>
             </div>
-            <button type="submit" className="btn btn-primary"
-                    onClick={() => this.buy()}>Buy
-            </button>
+            <div className="form-group p-4">
+                <p className="h5">Sell BGC</p>
+                <label>Amount</label>
+                <input type="number" className="form-control" placeholder="Amount"
+                       value={this.state.amountBgcToSell}
+                       onChange={e => this.updateAmountBgcToSell(e.target.value)}/>
+                {this.renderApprove()}
+                {this.renderSell()}
+            </div>
         </div>
     }
+
+    renderApprove() {
+        if (this.state.showApprove) {
+            return <button type="submit" className="btn btn-primary"
+                           onClick={() => this.approve()}>Approve
+            </button>;
+        }
+    }
+
+    renderSell() {
+        if (this.state.showSell) {
+            return <button type="submit" className="btn btn-primary"
+                           onClick={() => this.sell()}>Sell
+            </button>;
+        }
+    }
+
+    updateAmountBgcToSell(amountBgcToSell) {
+        this.setState({amountBgcToSell: amountBgcToSell});
+        this.updateIsAllowanceEnough();
+    }
+
 
     async update() {
         console.log("Updating Vendor component");
@@ -73,6 +107,7 @@ export class Vendor extends React.Component {
             this.updateVendorBgc();
             this.updateVendorEth();
             this.updateVendorBgcEth();
+            this.updateIsAllowanceEnough();
         }
     }
 
@@ -103,8 +138,19 @@ export class Vendor extends React.Component {
     }
 
     updateAmountEthToPay() {
-        console.log("Updating amount eth to pay");
         this.setState({amountEthToPay: this.state.amountBgcToBuy / this.state.vendorBgcEthPrice});
+    }
+
+    updateIsAllowanceEnough() {
+        const {bugCoin, vendor} = this.props;
+        bugCoin.allowance(this.props.selectedAddress, vendor.address).then(allowance => {
+            const bgcToSell = this.state.amountBgcToSell === "" ? 0 : this.state.amountBgcToSell;
+            if (allowance.gte(ethers.utils.parseEther(bgcToSell.toString()))) {
+                this.setState({showApprove: false, showSell: true})
+            } else {
+                this.setState({showApprove: true, showSell: false})
+            }
+        });
     }
 
     buy() {
@@ -119,6 +165,36 @@ export class Vendor extends React.Component {
         });
         buyPromise
             .then(_ => this.setState({amountBgcToBuy: ""}))
+            .then(_ => this.update());
+    }
+
+    approve() {
+        const {bugCoin, vendor} = this.props;
+        const amount = ethers.utils.parseEther(this.state.amountBgcToSell.toString());
+        const approvePromise = bugCoin.approve(vendor.address, amount)
+            .then(tx => tx.wait());
+        toast.promise(approvePromise, {
+            pending: 'Approve transaction in progress',
+            success: 'Approve transaction succeed 👌',
+            error: 'Approve transaction failed 🤯'
+        });
+        approvePromise
+            .then(_ => this.setState({showApprove: false}))
+            .then(_ => this.sell());
+    }
+
+    sell() {
+        const {vendor} = this.props;
+        const amount = ethers.utils.parseEther(this.state.amountBgcToSell.toString());
+        const sellPromise = vendor.sell(amount)
+            .then(tx => tx.wait());
+        toast.promise(sellPromise, {
+            pending: 'Sell transaction in progress',
+            success: 'Sell transaction succeed 👌',
+            error: 'Sell transaction failed 🤯'
+        });
+        sellPromise
+            .then(_ => this.setState({amountBgcToSell: ""}))
             .then(_ => this.update());
     }
 
