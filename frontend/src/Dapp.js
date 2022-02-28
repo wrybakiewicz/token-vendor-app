@@ -5,6 +5,7 @@ import contracts from "./contracts/contracts.json";
 import {ethers} from "ethers";
 import {Balance} from "./Balance";
 import {Transfer} from "./Transfer";
+import {Vendor} from "./Vendor";
 
 const NETWORK_ID = '31337';
 
@@ -16,8 +17,10 @@ export class Dapp extends React.Component {
         this.initialState = {
             selectedAddress: undefined,
             bugCoin: undefined,
+            vendor: undefined,
             balanceActive: true,
-            transferActive: false
+            transferActive: false,
+            vendorActive: false
         };
 
         this.state = this.initialState;
@@ -38,7 +41,7 @@ export class Dapp extends React.Component {
             );
         }
 
-        if (!this.state.bugCoin) {
+        if (!this.state.bugCoin || !this.state.vendor) {
             return <div>Loading...</div>;
         }
 
@@ -50,15 +53,25 @@ export class Dapp extends React.Component {
                             <a className={"nav-link " + this.showActive(this.state.balanceActive)}
                                onClick={() => this.setState({
                                    balanceActive: true,
-                                   transferActive: false
+                                   transferActive: false,
+                                   vendorActive: false
                                })} href="#">Balance</a>
                         </li>
                         <li className="nav-item">
                             <a className={"nav-link " + this.showActive(this.state.transferActive)}
                                onClick={() => this.setState({
                                    balanceActive: false,
-                                   transferActive: true
+                                   transferActive: true,
+                                   vendorActive: false
                                })} href="#">Transfer</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className={"nav-link " + this.showActive(this.state.vendorActive)}
+                               onClick={() => this.setState({
+                                   balanceActive: false,
+                                   transferActive: false,
+                                   vendorActive: true
+                               })} href="#">Vendor</a>
                         </li>
                     </ul>
                 </div>
@@ -68,9 +81,13 @@ export class Dapp extends React.Component {
                 <div className="col-12 ">
                     <div>
                         {this.state.balanceActive && (<Balance bugCoin={this.state.bugCoin}
-                                                               selectedAddress={this.state.selectedAddress} />)}
+                                                               selectedAddress={this.state.selectedAddress}/>)}
                         {this.state.transferActive && (<Transfer bugCoin={this.state.bugCoin}
-                                                                 selectedAddress={this.state.selectedAddress} />)}
+                                                                 selectedAddress={this.state.selectedAddress}/>)}
+                        {this.state.vendorActive && (<Vendor bugCoin={this.state.bugCoin}
+                                                             provider={this.state.provider}
+                                                             vendor={this.state.vendor}
+                                                             selectedAddress={this.state.selectedAddress}/>)}
                     </div>
                 </div>
             </div>
@@ -114,16 +131,32 @@ export class Dapp extends React.Component {
         this._intializeEthers();
     }
 
-    async _intializeEthers() {
+    _intializeEthers() {
         const ethereum = window.ethereum
         const provider = new ethers.providers.Web3Provider(ethereum);
+        this.setState({provider: provider});
+        this._initializeBugCoin(provider, ethereum);
+        this._initializeVendor(provider, ethereum);
+    }
+
+    _initializeBugCoin(provider, ethereum) {
         const bugCoinContract = contracts[ethereum.networkVersion][0].contracts.BugCoin;
         const bugCoin = new ethers.Contract(
             bugCoinContract.address,
             bugCoinContract.abi,
             provider.getSigner(0)
         );
-        this.setState({bugCoin: bugCoin, provider: provider});
+        this.setState({bugCoin: bugCoin});
+    }
+
+    _initializeVendor(provider, ethereum) {
+        const vendorContract = contracts[ethereum.networkVersion][0].contracts.Vendor;
+        const vendor = new ethers.Contract(
+            vendorContract.address,
+            vendorContract.abi,
+            provider.getSigner(0)
+        );
+        this.setState({vendor: vendor});
     }
 
     _resetState() {

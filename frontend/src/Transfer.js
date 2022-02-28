@@ -46,14 +46,7 @@ export class Transfer extends React.Component {
             <button type="submit" className="btn btn-primary" disabled={this.sendDisabled()}
                     onClick={() => this.send()}>Send
             </button>
-            {this.renderRequestedBalance()}
         </div>
-    }
-
-    renderRequestedBalance() {
-        if (this.state.requestedBalance) {
-            return <p className="h3">Requested Balance: {ethers.utils.formatEther(this.state.requestedBalance)} BGC</p>
-        }
     }
 
     async update() {
