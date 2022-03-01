@@ -1,4 +1,4 @@
-const {ethers} = require("hardhat");
+const {ethers, network} = require("hardhat");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const {deploy, log, get} = deployments
@@ -18,7 +18,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const bugCoinContract = await getBugContract(bugCoin.address)
     const bugCoinSupply = await bugCoinContract.totalSupply();
     await bugCoinContract.transfer(vendor.address, bugCoinSupply.div(2))
-
+    log("Verify vendor")
+    log("hardhat verify --network " + network.name + " " + vendor.address + " " + args)
 }
 
 async function getBugContract(address) {

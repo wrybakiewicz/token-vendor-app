@@ -34,6 +34,16 @@ module.exports = {
       accounts: {
         mnemonic: process.env.MNEMONIC
       },
+    },
+    rinkeby: {
+      url: process.env.RINKEBY_RPC_URL,
+      accounts: {
+        mnemonic: process.env.MNEMONIC
+      },
+      chainId: 4
     }
   },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
+  }
 };

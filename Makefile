@@ -15,3 +15,7 @@ test:
 
 deploy_local:
 	npx hardhat deploy --network localhost --export-all ./frontend/src/contracts/contracts.json
+
+#Rinkeby
+deploy_rinkeby:
+	npx hardhat deploy --network rinkeby --export-all ./frontend/src/contracts/contracts.json
