@@ -1,0 +1,28 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Vendor
+    network: mainnet
+    source:
+      address: "0x6Bca63A5959Fce9923c6e4ff0bB757861E2117E9"
+      abi: Vendor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - EthWithdrawn
+        - OwnershipTransferred
+        - TokenBought
+        - TokenSold
+      abis:
+        - name: Vendor
+          file: ./abis/Vendor.json
+      eventHandlers:
+        - event: TokenBought(address,uint256,uint256)
+          handler: handleTokenBought
+        - event: TokenSold(address,uint256,uint256)
+          handler: handleTokenSold
+      file: ./src/mapping.ts

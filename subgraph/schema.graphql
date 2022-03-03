@@ -1,0 +1,8 @@
+type VendingMachineAccountStatus @entity {
+  id: ID!
+  address: Bytes!
+  amountOfEthBought: BigInt!
+  amountOfEthSold: BigInt!
+  amountOfBgcBought: BigInt!
+  amountOfBgcSold: BigInt!
+}
