@@ -9,7 +9,7 @@ import {Vendor} from "./Vendor";
 import {Withdraw} from "./Withdraw";
 import _ from 'underscore';
 
-const NETWORK_ID = '4';
+const NETWORK_ID = '31337';
 
 export class Dapp extends React.Component {
 

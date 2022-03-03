@@ -8,7 +8,10 @@ compile:
 
 #Localhost
 node:
-	npx hardhat node --no-deploy
+	npx hardhat node --no-deploy --hostname 0.0.0.0
+
+deploy_graph:
+	$(MAKE) -C subgraph deploy_local
 
 test:
 	npx hardhat test

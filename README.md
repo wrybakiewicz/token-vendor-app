@@ -5,6 +5,8 @@ Quest from: https://github.com/scaffold-eth/scaffold-eth-challenges challenge-2-
 ## How to run on localhost
 - `make node`
 - `make compile deploy_local`
+- setup local the graph node: `https://thegraph.academy/developers/local-development/` (change in docker-compose.yml etherium variable address to ip received from running setup.sh)
+- `make deploy_graph`
 - from ./frontend `npm install` `npm start`
 
 ## How to run on rinkeby
